@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BhopalMLS — Dense Urban Mobile LiDAR Dataset</title>
+  <meta name="description" content="Project page for BhopalMLS with classified scene exploration, 12/21/62/68-class taxonomy panels, and instance segmentation viewer." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=2" />
+  <script>
+    function toggleTheme() {
+      const doc = document.documentElement;
+      const currentTheme = doc.getAttribute("data-theme") || "light";
+      const newTheme = currentTheme === "dark" ? "light" : "dark";
+      doc.setAttribute("data-theme", newTheme);
+      document.getElementById("theme-toggle").innerText = newTheme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode";
+      document.dispatchEvent(new CustomEvent('themeChanged', { detail: newTheme }));
+    }
+  </script>
+</head>
+<body>
+  <header class="hero">
+    <nav class="topbar" aria-label="Page sections">
+      <a href="#video">Video</a>
+      <a href="#abstract">Abstract</a>
+      <a href="#scenes">Interactive Scenes</a>
+      <a href="#results">Results</a>
+      <a href="#taxonomy">Taxonomy</a>
+      <a href="#instances">Instances</a>
+      <a href="#citation">Citation</a>
+      <button id="theme-toggle" onclick="toggleTheme()" class="btn small" style="margin-left: 1rem; padding: 0.25rem 0.75rem;">🌙 Dark Mode</button>
+    </nav>
+
+    <p class="eyebrow">BhopalMLS Dataset</p>
+    <h1>BhopalMLS: A LiDAR Dataset for Semantic Scene Understanding in Heterogeneous Urban Environments</h1>
+
+    <p class="authors">Pyare Lal Chauhan<sup>1</sup>, Vaibhav Kumar<sup>1</sup>, Bharat Lohani<sup>2</sup></p>
+    <p class="affiliations"><sup>1</sup>GeoAI4Cities Lab, Department of Data Science and Engineering, IISER Bhopal, India<br><sup>2</sup>Department of Civil Engineering, IIT Kanpur, India</p>
+    <p class="affiliations">WACV 2027 · Evaluations and Datasets Track</p>
+
+    <div class="links">
+      <a class="btn" href="#citation">📄 Paper <span style="font-size: 0.75em; margin-left: 0.4rem; opacity: 0.7; font-weight: normal;">(WACV 2027, PDF soon)</span></a>
+      <!-- Data and Code will open their own sites (the GitHub sample release is retired, 10-19). Until then
+           they read "Coming soon" and carry no href; to go live, add href="https://..." and drop the span and
+           aria-disabled. deploy_named.sh accepts a real https link or this coming-soon form, nothing else. -->
+      <a class="btn" id="data-link" aria-disabled="true" style="cursor: default;">🗄 Data <span style="font-size: 0.75em; margin-left: 0.4rem; opacity: 0.7; font-weight: normal;">(Coming soon)</span></a>
+      <a class="btn" id="code-link" aria-disabled="true" style="cursor: default;">&lt;/&gt; Code <span style="font-size: 0.75em; margin-left: 0.4rem; opacity: 0.7; font-weight: normal;">(Coming soon)</span></a>
+      <a class="btn" href="#video">▶ Video</a>
+      <a class="btn" href="#scenes">🔍 Explore Scenes</a>
+    </div>
+
+    <div class="hero-media">
+      <figure class="hero-figure">
+        <img src="assets/figures/Figure_1_Study_Area.jpg" alt="BhopalMLS study area and acquisition overview" />
+      </figure>
+      <!-- Silent preview loop, its own card below the study-area figure at the same width: assets/video/teaser.mp4
+           (8 s, 1020 px, 1.3 MB) and its first frame as poster, both tracked; made by
+           ../video/scripts/make_teaser.sh, which also writes a WebP and a GIF of the same loop for READMEs.
+           overview-video.js plays it while on screen; a click brings the overview video into view and starts it. -->
+      <figure class="hero-figure hero-loop" id="hero-loop" title="Watch the overview video">
+        <video muted loop playsinline preload="metadata" poster="assets/video/teaser_poster.webp"
+               aria-label="Silent preview: Bhopal_4 in the dataset viewer, 12 classes, subsampled for display">
+          <source src="assets/video/teaser.mp4" type="video/mp4">
+        </video>
+        <figcaption>Bhopal_4 in the viewer, 12 classes, subsampled for display · <a href="#video">▶ Watch the overview</a></figcaption>
+      </figure>
+    </div>
+  </header>
+
+  <main>
+    <section class="metrics" aria-label="Dataset summary">
+      <div><strong>1.23B</strong><span>Annotated Points</span><small>1,205.2M static + 26.2M moving</small></div>
+      <div><strong>68</strong><span>Fine-grained Classes</span><small>62 static + 6 moving</small></div>
+      <div><strong>26,699</strong><span>Object Instances</span><small>19,518 static + 7,181 moving</small></div>
+      <div><strong>12/21/62/68</strong><span>Taxonomy Levels</span><small>12 and 21 benchmarked</small></div>
+    </section>
+
+    <!-- Overview video: built in ../video/ (scripts/encode_web.sh); assets/video/hls/ is gitignored
+         like the clouds. English (edge-tts) is the default narration, Hindi (Sarvam) the switch. -->
+    <section id="video" class="prose wide video-sec">
+      <h2>Video</h2>
+      <p class="video-desc">A three-minute overview: the Azad Market scenes in the dataset viewer, the 12-, 21- and
+        68-class taxonomies and the instance labels, the benchmark, and the cross-region transfer finding. The viewer
+        scenes are subsampled for display; the dataset is denser. The narration, in English or Hindi, is synthesised.</p>
+      <div class="video-wrapper">
+        <video id="overview-video" controls playsinline preload="none"
+               poster="assets/video/bhopalmls_video_poster.webp" aria-label="Overview video of BhopalMLS">
+          Your browser does not play HTML5 video.
+        </video>
+        <!-- Big play button over the poster; overview-video.js hides it while playing and shows it again on pause. -->
+        <button type="button" id="video-play" class="video-play" aria-label="Play the overview video"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5v14l11-7z"/></svg></button>
+      </div>
+      <div class="video-row">
+        <!-- Chapters: one per shot, data-t = the shot's start in the 190 s page build (video/_work/timeline_page.json). -->
+        <nav id="video-chapters" class="video-chapters" aria-label="Video chapters" hidden>
+          <button type="button" data-t="9"><span>0:09</span>Azad Market · 12 classes</button>
+          <button type="button" data-t="48.1"><span>0:48</span>21 classes</button>
+          <button type="button" data-t="71.9"><span>1:12</span>Instances</button>
+          <button type="button" data-t="84.4"><span>1:24</span>Narrow streets</button>
+          <button type="button" data-t="105"><span>1:45</span>Mixed traffic</button>
+          <button type="button" data-t="124.1"><span>2:04</span>Benchmark</button>
+          <button type="button" data-t="145"><span>2:25</span>Transfer</button>
+          <button type="button" data-t="178.5"><span>2:58</span>Closing</button>
+        </nav>
+        <div id="video-lang" class="video-lang" role="group" aria-label="Narration language" hidden>
+          <span>Narration</span>
+          <button type="button" data-lang="en" aria-pressed="true">English</button>
+          <button type="button" data-lang="hi" lang="hi" aria-pressed="false">हिन्दी</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="abstract" class="prose">
+      <h2>Overview</h2>
+      <p>BhopalMLS captures narrow commercial corridors, mixed traffic, overhead wiring, roadside objects, informal shopfronts, and dense vegetation from handheld mobile laser scanning. Collected in an unplanned and heterogeneous dense city setting in India, it challenges state-of-the-art models trained on well-planned western datasets.</p>
+      <p>The dataset is organized as a 68-class V10 taxonomy, a 12-class coarse semantic benchmark, and a 21-class fine-grained benchmark for object-heavy scene understanding, highlighting extreme geometric clutter and diverse region-specific categories.</p>
+    </section>
+
+    <section id="scenes" class="prose wide">
+      <div class="section-head">
+        <div>
+          <h2>Interactive Scene Explorer</h2>
+          <p class="muted">Explore partial 3D point clouds from the dataset directly in your browser. Please note that these scenes are provided solely for visualization and understanding; certain classes, such as road surfaces, have been partially sampled to optimize browser performance. Select a scene below and use the toolbar to toggle between raw RGB, semantic taxonomies, and instance segmentation modes. Click on objects with the 'Interact' tool to inspect them.</p>
+        </div>
+      </div>
+
+      <div id="viewer" class="viewer-shell">
+        <div id="cloud-viewer" class="cloud-viewer" aria-label="BhopalMLS point cloud scene viewer"></div>
+        <div id="viewer-hud" class="viewer-hud">Loading</div>
+      </div>
+      <div class="viewer-bar map-toolbar" id="viewer-toolbar">
+        <select id="scene-dropdown" class="btn small" title="Select scene" style="background: var(--panel);">
+          <option value="dominant">Bhopal_6</option>
+          <option value="width">Bhopal_7</option>
+          <option value="vertical">Bhopal_4</option>
+        </select>
+        <div class="segmented" role="group" aria-label="Color mode">
+          <button data-mode="rgb">RGB</button>
+          <button data-mode="12c" class="active">12c</button>
+          <button data-mode="21c">21c</button>
+          <button data-mode="62c">62c</button>
+          <button data-mode="68c">68c</button>
+          <button data-mode="instance">Instances</button>
+        </div>
+        <label class="range" title="Point size">Size <input id="point-size" type="range" min="0.6" max="4" step="0.2" value="1.6" /></label>
+        <button id="rotate-toggle" class="btn small toggle-btn" title="Slow turntable; pauses while you drag or measure">⟳ Auto-rotate</button>
+        <button id="edl-toggle" class="btn small toggle-btn" title="Toggle depth shading (EDL)">🌑 Shadows</button>
+        <button id="measure-toggle" class="btn small toggle-btn" title="Measure distance">📏 Measure</button>
+        <button id="interact-toggle" class="btn small toggle-btn" title="Toggle point inspection">👆 Interact</button>
+        <button id="reset-view" class="btn small" title="Reset camera">⟲ Reset view</button>
+        <button id="fullscreen-view" class="btn small" title="Full-screen viewer (Esc exits)">⛶ Full screen</button>
+        <span id="scene-info" class="muted"></span>
+      </div>
+      <div id="viewer-legend" class="class-legend"></div>
+      <div id="scene-cards" class="scene-cards"></div>
+    </section>
+
+    <section id="results" class="prose wide">
+      <h2>Benchmarking Foundation Models</h2>
+      <p>BhopalMLS benchmarks state-of-the-art supervised models and pretrained 3D foundation models. Fine-tuned foundation models successfully transfer to complex, unstructured scenes, significantly outperforming models trained from scratch.</p>
+      
+      <div class="instance-grid" style="margin-top: 1.5rem;">
+        <article class="info-panel">
+          <h3>Supervised vs Foundation</h3>
+          <p>Utonia(L) with fine-tuning achieves the best semantic segmentation performance, demonstrating the value of foundation models on complex, unstructured urban scenes.</p>
+          <dl>
+            <div><dt>PTv3 (Scratch)</dt><dd>68.04% mIoU</dd></div>
+            <div><dt>Utonia(L) Fine-tuned</dt><dd>71.28% mIoU</dd></div>
+          </dl>
+        </article>
+        <article class="info-panel">
+          <h3>Asymmetric Transferability</h3>
+          <p>Cross-region experiments (Ke-MLS, Toronto-3D, Paris-Lille-3D, SemanticKITTI) reveal that models trained on BhopalMLS generalize to other benchmarks better than the reverse on every pair (by up to 36 mIoU points). Controlled retraining traces this to the coverage of BhopalMLS's subtype inventory, not to dataset size or corridor geometry.</p>
+          <dl>
+            <div><dt>BhopalMLS → Target</dt><dd>Strong Transfer</dd></div>
+            <div><dt>Target → BhopalMLS</dt><dd>Severe Drop</dd></div>
+          </dl>
+        </article>
+      </div>
+    </section>
+
+    <section id="taxonomy" class="prose wide">
+      <div class="section-head">
+        <div>
+          <h2>Taxonomy & Class Statistics</h2>
+          <p class="muted">Explore the hierarchical label structure and dataset-level point counts. The taxonomy defines static and dynamic (moving) classes across the coarse (12-class) and fine-grained (21-class) benchmarks, the 62 static classes of the primary benchmark, and the full 68-class taxonomy.</p>
+        </div>
+      </div>
+      <div id="taxonomy-panels" class="taxonomy-panels"></div>
+    </section>
+
+    <section id="instances" class="prose wide">
+      <div class="section-head">
+        <div>
+          <h2>Instance Segmentation Benchmarks</h2>
+          <p class="muted">BhopalMLS provides rich instance-level annotations for all "thing" classes. Below are the quantitative baseline results and qualitative error maps for the 12-class and 21-class instance segmentation tracks.</p>
+        </div>
+      </div>
+
+      <div class="instance-grid">
+        <article class="info-panel">
+          <h3>12-class instance setting</h3>
+          <p><b>Stuff:</b> Ground, Vegetation, Road, Wire. <br/><b>Things:</b> Building, Pole and Tower, Wire-Structure Connector, Vehicle, Board, Fencing, Human and Animal, Road Side Object.</p>
+          <dl>
+            <div><dt>Best Utonia(L) FT mAP50</dt><dd>44.07%</dd></div>
+            <div><dt>Best Utonia(L) FT mAP</dt><dd>33.09%</dd></div>
+          </dl>
+        </article>
+        <article class="info-panel">
+          <h3>21-class instance setting</h3>
+          <p><b>Stuff:</b> Ground, Vegetation, Road, Wire. <br/><b>Things:</b> 17 fine classes including Stairs, 2/3/4-Wheeler, Shop Shade, Mannequin, and Road Side Object (other).</p>
+          <dl>
+            <div><dt>Best Utonia(L) FT mAP50</dt><dd>39.83%</dd></div>
+            <div><dt>Best Utonia(L) FT mAP</dt><dd>30.63%</dd></div>
+          </dl>
+        </article>
+      </div>
+
+      <div class="figure-grid">
+        <figure>
+          <img src="assets/figures/Fig_S7_instance_predictions_12c.jpg" alt="BhopalMLS 12-class qualitative instance segmentation predictions" loading="lazy" />
+          <figcaption>12-class instance predictions and error maps.</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/figures/Fig_S8_instance_predictions_21c.jpg" alt="BhopalMLS 21-class qualitative instance segmentation predictions" loading="lazy" />
+          <figcaption>21-class instance predictions and error maps.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section id="citation" class="prose">
+      <h2>Citation</h2>
+      <p class="muted">If you use BhopalMLS in your research, please cite our paper:</p>
+      <div id="bibtex">
+        <pre><code>@inproceedings{chauhan2027bhopalmls,
+  title     = {BhopalMLS: A LiDAR Dataset for Semantic Scene Understanding in Heterogeneous Urban Environments},
+  author    = {Chauhan, Pyare Lal and Kumar, Vaibhav and Lohani, Bharat},
+  booktitle = {Proceedings of the IEEE/CVF Winter Conference on Applications of Computer Vision (WACV)},
+  year      = {2027}
+}</code></pre>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>GeoAI4Cities Lab, IISER Bhopal &nbsp;·&nbsp; Contact: Vaibhav Kumar (<a href="mailto:vaibhav@iiserb.ac.in">vaibhav@iiserb.ac.in</a>)</p>
+  </footer>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/": "https://unpkg.com/three@0.160.0/"
+      }
+    }
+  </script>
+  <script src="app.js?v=37" type="module"></script>
+  <script src="assets/js/hls.min.js" defer></script>
+  <script src="assets/js/overview-video.js?v=2" defer></script>
+</body>
+</html>
