@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BhopalMLS Annotation Guide</title>
+  <meta name="description" content="How the BhopalMLS point clouds were labelled in CloudCompare: taxonomy and codes, the two-stage segmentation workflow, naming and export of instances, and the quality checks." />
+  <style>
+    :root {
+      --bg: #ffffff; --fg: #0f172a; --muted: #64748b;
+      --panel: #ffffff; --panel-border: rgba(0,0,0,0.1); --line: #e2e8f0;
+      --accent: #10b981; --accent-2: #0ea5e9; --accent-glow: rgba(16,185,129,0.15);
+      --code-bg: rgba(0,0,0,0.04); --kbd-bg: #f8fafc; --kbd-border: #cbd5e1;
+      --note: #f0fdf4; --note-border: #86efac; --warn: #fffbeb; --warn-border: #fcd34d; --rule: #eff6ff; --rule-border: #93c5fd;
+      --max: 980px;
+      --font: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #09090b; --fg: #fafafa; --muted: #a1a1aa;
+        --panel: #111113; --panel-border: rgba(255,255,255,0.12); --line: rgba(255,255,255,0.12);
+        --accent: #10b981; --accent-2: #38bdf8; --accent-glow: rgba(16,185,129,0.25);
+        --code-bg: rgba(255,255,255,0.07); --kbd-bg: #18181b; --kbd-border: #3f3f46;
+        --note: #052e16; --note-border: #166534; --warn: #422006; --warn-border: #a16207; --rule: #0c2a4a; --rule-border: #1d4ed8;
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #09090b; --fg: #fafafa; --muted: #a1a1aa;
+      --panel: #111113; --panel-border: rgba(255,255,255,0.12); --line: rgba(255,255,255,0.12);
+      --accent: #10b981; --accent-2: #38bdf8; --accent-glow: rgba(16,185,129,0.25);
+      --code-bg: rgba(255,255,255,0.07); --kbd-bg: #18181b; --kbd-border: #3f3f46;
+      --note: #052e16; --note-border: #166534; --warn: #422006; --warn-border: #a16207; --rule: #0c2a4a; --rule-border: #1d4ed8;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    a { color: var(--accent-2); text-decoration: none; }
+    a:hover { color: var(--accent); }
+    .topbar { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 1rem; padding: 0.6rem 16px; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--bg) 85%, transparent); backdrop-filter: blur(8px); }
+    .topbar .brand { font-weight: 700; }
+    .topbar .brand span { color: var(--muted); font-weight: 500; }
+    .topbar nav { margin-left: auto; display: flex; gap: 0.9rem; flex-wrap: wrap; font-size: 0.92rem; }
+    .topbar nav a { color: var(--muted); }
+    .topbar button { border: 1px solid var(--panel-border); background: var(--panel); color: var(--fg); border-radius: 8px; padding: 0.3rem 0.7rem; cursor: pointer; font: inherit; font-size: 0.85rem; }
+    @media (max-width: 640px) {
+      .topbar { gap: 0.6rem; }
+      .topbar .brand span { display: none; }
+      .topbar nav { gap: 0.6rem; font-size: 0.85rem; }
+    }
+    main { max-width: var(--max); margin: 0 auto; padding: 1.5rem 16px 4rem; }
+    header.hero { padding: 1.5rem 0 1rem; border-bottom: 1px solid var(--line); margin-bottom: 1.5rem; }
+    .eyebrow { display: inline-block; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; color: var(--accent); background: var(--accent-glow); border-radius: 999px; padding: 0.2rem 0.7rem; }
+    h1 { font-size: clamp(1.7rem, 4vw, 2.5rem); line-height: 1.15; margin: 0.6rem 0 0.6rem; letter-spacing: -0.01em; }
+    .lead { color: var(--muted); font-size: 1.08rem; max-width: 760px; margin: 0 0 1rem; }
+    .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .chip { font-size: 0.85rem; border: 1px solid var(--panel-border); border-radius: 999px; padding: 0.2rem 0.75rem; background: var(--panel); color: var(--muted); }
+    .chip b { color: var(--fg); font-weight: 600; }
+    h2 { font-size: 1.45rem; margin: 2.6rem 0 0.8rem; padding-top: 0.5rem; letter-spacing: -0.01em; }
+    h2 .num { color: var(--accent); margin-right: 0.5rem; font-variant-numeric: tabular-nums; }
+    h3 { font-size: 1.1rem; margin: 1.6rem 0 0.5rem; }
+    p { margin: 0.5rem 0 0.9rem; }
+    ul, ol { padding-left: 1.4rem; margin: 0.4rem 0 1rem; }
+    li { margin: 0.25rem 0; }
+    ol.steps { counter-reset: s; list-style: none; padding-left: 0; }
+    ol.steps > li { counter-increment: s; position: relative; padding-left: 2.6rem; margin: 0.7rem 0; }
+    ol.steps > li::before { content: counter(s); position: absolute; left: 0; top: 0.1rem; width: 1.9rem; height: 1.9rem; border-radius: 50%; background: var(--accent-glow); color: var(--accent); font-weight: 700; display: grid; place-items: center; font-size: 0.9rem; }
+    code { font-family: var(--mono); font-size: 0.9em; background: var(--code-bg); padding: 0.1em 0.35em; border-radius: 4px; }
+    pre { background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px; padding: 0.8rem 1rem; overflow-x: auto; font-size: 0.86rem; line-height: 1.5; }
+    pre code { background: none; padding: 0; }
+    kbd { font-family: var(--mono); font-size: 0.82em; background: var(--kbd-bg); border: 1px solid var(--kbd-border); border-bottom-width: 2px; border-radius: 5px; padding: 0.05em 0.45em; white-space: nowrap; }
+    .menu { font-weight: 600; white-space: nowrap; }
+    .menu i { font-style: normal; color: var(--muted); padding: 0 0.25em; }
+    .callout { border: 1px solid; border-radius: 10px; padding: 0.7rem 1rem; margin: 1rem 0; }
+    .callout.note { background: var(--note); border-color: var(--note-border); }
+    .callout.warn { background: var(--warn); border-color: var(--warn-border); }
+    .callout.rule { background: var(--rule); border-color: var(--rule-border); }
+    .callout > b:first-child { display: block; font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.2rem; }
+    figure.shot { margin: 1.2rem 0 1.5rem; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--panel); }
+    figure.shot img { display: block; width: auto; max-width: 100%; height: auto; margin: 0 auto; background: #0b1a2b; }
+    figure.shot figcaption { padding: 0.6rem 0.9rem; font-size: 0.9rem; color: var(--muted); border-top: 1px solid var(--line); }
+    figure.shot figcaption b { color: var(--fg); }
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 720px) { .two { grid-template-columns: 1fr; } }
+    table { border-collapse: collapse; width: 100%; font-size: 0.92rem; margin: 0.6rem 0 1.2rem; }
+    th, td { text-align: left; padding: 0.42rem 0.6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+    td.code, th.code { font-family: var(--mono); white-space: nowrap; }
+    .sw { display: inline-block; width: 0.8em; height: 0.8em; border-radius: 3px; vertical-align: -0.08em; margin-right: 0.45em; border: 1px solid rgba(0,0,0,0.15); }
+    tr.major td { font-weight: 600; border-top: 2px solid var(--line); }
+    tr.moving td { color: var(--muted); }
+    .toc { border: 1px solid var(--line); border-radius: 12px; padding: 0.8rem 1rem; background: var(--panel); margin: 1rem 0 0; }
+    .toc b { display: block; margin-bottom: 0.3rem; font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+    .toc ol { margin: 0; padding-left: 1.3rem; columns: 2; column-gap: 2rem; }
+    @media (max-width: 640px) { .toc ol { columns: 1; } }
+    .toc li { break-inside: avoid; }
+    .flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; margin: 1rem 0 1.4rem; }
+    @media (max-width: 760px) { .flow { grid-template-columns: 1fr; } }
+    .flow div { border: 1px solid var(--panel-border); border-radius: 10px; padding: 0.6rem 0.7rem; background: var(--panel); font-size: 0.9rem; }
+    .flow div b { display: block; color: var(--accent); font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.15rem; }
+    .tree { font-family: var(--mono); font-size: 0.86rem; line-height: 1.45; white-space: pre; }
+    dl.faq dt { font-weight: 600; margin-top: 0.9rem; }
+    dl.faq dd { margin: 0.2rem 0 0; color: var(--fg); }
+    footer { max-width: var(--max); margin: 0 auto; padding: 1.5rem 16px 3rem; color: var(--muted); font-size: 0.9rem; border-top: 1px solid var(--line); }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">BhopalMLS <span>· Annotation guide</span></div>
+    <nav>
+      <a href="#taxonomy">Taxonomy</a>
+      <a href="#open">Open</a>
+      <a href="#segment">Segment tool</a>
+      <a href="#classes">Classes</a>
+      <a href="#instances">Instances</a>
+      <a href="#export">Export</a>
+      <a href="#qc">Quality</a>
+      <a href="#appendix">Codes</a>
+      <a href="../index.html" title="Back to the BhopalMLS project page">Project page</a>
+    </nav>
+    <button id="theme-toggle" type="button" aria-label="Toggle dark mode">Dark mode</button>
+  </div>
+
+  <main>
+    <header class="hero">
+      <span class="eyebrow">BhopalMLS Dataset</span>
+      <h1>Annotating BhopalMLS point clouds in CloudCompare</h1>
+      <p class="lead">
+        The step-by-step procedure used to label the BhopalMLS survey paths: open a segment, inspect it with the
+        360° photos, carve it into classes with the segment tool, split classes into instances, name and export
+        every instance, then pass the quality checks. Written for annotators, and for anyone who wants to extend
+        the dataset or label their own scans the same way.
+      </p>
+      <div class="chips">
+        <span class="chip"><b>CloudCompare</b> 2.11 or newer (free, Windows / macOS / Linux)</span>
+        <span class="chip"><b>68 classes</b> = 62 static + 6 moving, in 12 major groups</span>
+        <span class="chip"><b>Instance ID</b> <code>NXXZZYYYY</code></span>
+        <span class="chip"><b>Deliverable</b> one CSV per instance</span>
+      </div>
+      <div class="toc">
+        <b>Contents</b>
+        <ol>
+          <li><a href="#before">Before you start</a></li>
+          <li><a href="#taxonomy">The taxonomy and its codes</a></li>
+          <li><a href="#overview">The workflow at a glance</a></li>
+          <li><a href="#open">Step 1 · Open a segment</a></li>
+          <li><a href="#view">Step 2 · Set up the view</a></li>
+          <li><a href="#segment">Step 3 · The segment tool</a></li>
+          <li><a href="#classes">Step 4 · Carve the segment into classes</a></li>
+          <li><a href="#instances">Step 5 · Split classes into instances</a></li>
+          <li><a href="#export">Step 6 · Name and export</a></li>
+          <li><a href="#qc">Step 7 · Quality checks</a></li>
+          <li><a href="#faq">Frequently asked questions</a></li>
+          <li><a href="#appendix">Appendix · class codes, shortcuts, folder layout</a></li>
+        </ol>
+      </div>
+    </header>
+
+    <!-- ============================================================ 1 -->
+    <h2 id="before"><span class="num">1</span>Before you start</h2>
+    <p>
+      BhopalMLS was scanned with a handheld GeoSLAM ZEB Horizon along eight survey paths through the old market
+      district of Bhopal. Each path is split into <b>segments</b> of a few hundred metres. One segment is one
+      work unit: you receive it, label it completely, and return it.
+    </p>
+    <h3>What you receive</h3>
+    <ul>
+      <li><b>The segment point cloud</b> (LAS, or PLY / CSV), with XYZ in UTM zone 43N, LiDAR intensity, GPS time, and RGB for the points that fall inside a registered photo (about 40% of points; the rest carry RGB 0,0,0).</li>
+      <li><b>The 360° photo crops</b> taken along the same walk. Use them whenever the geometry alone does not tell you what an object is.</li>
+      <li><b>This guide</b> and the class code table (<a href="#appendix">appendix</a>). Keep the table open while you work.</li>
+    </ul>
+    <h3>Software and hardware</h3>
+    <ul>
+      <li><b>CloudCompare 2.11 or newer</b> from <a href="https://www.danielgm.net/cc/" target="_blank" rel="noopener">danielgm.net/cc</a> (Windows installer, macOS, Linux Flatpak or Snap). Everything here uses the standard tools; no plugin is required. The screenshots are from 2.11.3 on Linux; the dialogs and buttons are the same in 2.12 and 2.13.</li>
+      <li>A segment has 5 to 15 million points. 16 GB RAM and a dedicated GPU make the segment tool fluid; 8 GB works if you keep only the cloud you are editing visible.</li>
+      <li>A mouse with a wheel. The segment tool is painful on a trackpad.</li>
+    </ul>
+    <h3>Folder layout on disk</h3>
+    <p>Create the output folders before you start, one per major class, with a sub-folder per subclass you actually use. The lab's merge script reads the class from the folder and the instance ID from the file name, so the layout is part of the deliverable.</p>
+<pre class="tree">Path_6/
+└── Segment_03/
+    ├── Segment_03_raw.las             the segment as received (never edited)
+    ├── Segment_03_project.bin         your CloudCompare project, saved often
+    ├── Building/
+    │   ├── Commercial/                603020001.csv  603020002.csv  ...
+    │   └── Residential/               603010001.csv  ...
+    ├── Road/Road/                     604000001.csv
+    ├── Vehicle/
+    │   ├── Car/                       608010001.csv  ...
+    │   └── Mobike (Two-Wheeler)/      608020001.csv  ...
+    ├── Human and Animal/Male/         611010001.csv  ...
+    ├── Moving/Moving Humans/          600040001.csv  ...
+    └── Unlabeled/Unlabeled/           600000001.csv</pre>
+
+    <!-- ============================================================ 2 -->
+    <h2 id="taxonomy"><span class="num">2</span>The taxonomy and its codes</h2>
+    <p>
+      Every point ends up in exactly one of <b>68 classes</b>: 62 static classes in 12 major groups, plus 6
+      classes for objects that moved while they were scanned. Each class has a four-digit code
+      <code>XXZZ</code>: <code>XX</code> is the major class (01 to 12) and <code>ZZ</code> the subclass within it.
+      <code>ZZ = 00</code> is the general subclass of that major class, used when the finer type cannot be told.
+      Major class <code>00</code> holds everything outside the static taxonomy: unlabeled points, noise and the
+      six moving classes.
+    </p>
+    <table>
+      <thead><tr><th class="code">XX</th><th>Major class</th><th>What goes in it</th><th>Subclasses (ZZ)</th></tr></thead>
+      <tbody>
+        <tr><td class="code">01</td><td><span class="sw" style="background:#808080"></span>Ground</td><td>Walkable ground that is not the carriageway: footpaths, shop fronts, unpaved verges, steps.</td><td>00 general · 01 Flat · 02 Gently sloping · 03 Steeply sloping (steps and stairs in front of shops; reported as <i>Stairs</i> in the paper)</td></tr>
+        <tr><td class="code">02</td><td><span class="sw" style="background:#008000"></span>Vegetation</td><td>Trees, shrubs, creepers, potted plants.</td><td>00 general · 01 Low (&lt; 1 m) · 02 Medium (1 to 3 m) · 03 High (&gt; 3 m)</td></tr>
+        <tr><td class="code">03</td><td><span class="sw" style="background:#800000"></span>Building</td><td>Walls, facades, roofs, balconies, fixed signage painted on the wall.</td><td>00 general · 01 Residential · 02 Commercial · 03 Industrial · 04 Special (temples, mosques, offices, hospitals)</td></tr>
+        <tr><td class="code">04</td><td><span class="sw" style="background:#404040"></span>Road</td><td>The carriageway surface vehicles drive on, including its drains and speed breakers.</td><td>00 only</td></tr>
+        <tr><td class="code">05</td><td><span class="sw" style="background:#ffff00"></span>Wire</td><td>Overhead wires and cables between poles and buildings.</td><td>00 only</td></tr>
+        <tr><td class="code">06</td><td><span class="sw" style="background:#ff00ff"></span>Pole and Tower</td><td>Vertical supports: electric poles, street lights, mobile towers, flag and banner poles.</td><td>00 general · 01 Electric pole · 02 Mobile tower · 03 Street light</td></tr>
+        <tr><td class="code">07</td><td><span class="sw" style="background:#ff8000"></span>Wire-Structure Connector</td><td>The hardware where wires meet structures: transformers, junction boxes, cross-arms, insulator clusters, wire bundles on a pole or wall.</td><td>00 only</td></tr>
+        <tr><td class="code">08</td><td><span class="sw" style="background:#0000ff"></span>Vehicle</td><td>Every parked or standing vehicle, with its load. A rider sitting on a parked two-wheeler is labelled with the bike as a rider class.</td><td>00 general · 01 Car · 02 Mobike (two-wheeler) · 03 Cycle · 04 Hand-cart · 05 Tuktuk (auto-rickshaw) · 06 Truck · 07 Rickshaw (cycle rickshaw) · 08 E-rickshaw · 09 Dynamic car · 10 Dynamic tuktuk · 11 Dynamic truck · 12 Rider on vehicle · 13 Mobike rider · 14 Cycle rider</td></tr>
+        <tr><td class="code">09</td><td><span class="sw" style="background:#00ffff"></span>Board</td><td>Free-standing or mounted boards: shop signboards, hoardings, banners on frames.</td><td>00 general · 01 Sign board · 02 Advertisement board</td></tr>
+        <tr><td class="code">10</td><td><span class="sw" style="background:#800080"></span>Fencing</td><td>Boundary walls, gates, railings and fences that are not part of a building.</td><td>00 general · 01 Masonry wall · 02 Wired boundary fencing · 03 Gate of boundary wall · 04 Road fencing</td></tr>
+        <tr><td class="code">11</td><td><span class="sw" style="background:#ff0000"></span>Human and Animal</td><td>People and animals that stood still during the scan.</td><td>00 general · 01 Male · 02 Female · 03 Child · 04 Animal (general) · 05 Dog · 06 Cow</td></tr>
+        <tr><td class="code">12</td><td><span class="sw" style="background:#008080"></span>Road Side Object</td><td>Everything else that stands on or beside the road.</td><td>00 general · 01 Barricade · 02 Shop shade (awnings, canopies) · 03 Road side furniture (benches, stalls, racks, displays) · 04 Statue · 05 Handpump · 06 Road side public structure · 07 Mannequin · 08 Dustbin · 09 Bus stand · 10 Overhead structure (gantries, water tanks) · 11 Road median</td></tr>
+        <tr class="moving"><td class="code">00</td><td>Outside the static taxonomy</td><td>Unlabeled, noise and moving objects.</td><td>00 Unlabeled · 01 Noise points (below ground) · 02 High noise (floating in the air) · 03 Moving vehicle · 04 Moving humans · 05 Moving female · 06 Moving male · 07 Moving animal · 08 Mobike rider moving</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout rule">
+      <b>Rule 1 · Subclass only when you are sure</b>
+      If you can see that a building is a shop, label it <code>0302</code> Commercial. If you only know it is a building, label it <code>0300</code>. A wrong subclass costs more than a general one: the general label is still correct at the 12-class level, a wrong subclass is wrong at every level.
+    </div>
+    <div class="callout rule">
+      <b>Rule 2 · Moving objects get the moving classes</b>
+      Anything that moved while the scanner passed leaves a smeared trail, a ghost or a fragment instead of a solid shape. Such points go to major class <code>00</code> (<code>0003</code> Moving vehicle, <code>0004</code> Moving humans, <code>0008</code> Mobike rider moving, and so on), never to the static classes. A vehicle that is clearly recognisable but was in slow traffic can be labelled Dynamic car / tuktuk / truck (<code>0809</code> to <code>0811</code>).
+    </div>
+    <div class="callout rule">
+      <b>Rule 3 · Unlabeled is the last resort</b>
+      <code>0000</code> is only for points you cannot identify at all, or for an object that is not in the list. If you can recognise an object from a fragment (a trunk without a crown, a bike without a wheel) give it its class.
+    </div>
+    <p>
+      Bhopal-specific cases that are easy to get wrong, and the class they belong to:
+    </p>
+    <table>
+      <thead><tr><th>You see</th><th>Label</th><th>Not</th></tr></thead>
+      <tbody>
+        <tr><td>An awning or canopy over a shop front</td><td><code>1202</code> Shop shade</td><td>Building</td></tr>
+        <tr><td>A clothes mannequin outside a garment shop</td><td><code>1207</code> Mannequin</td><td>Human</td></tr>
+        <tr><td>A vendor's hand cart (thela), with its goods</td><td><code>0804</code> Hand-cart</td><td>Road side furniture</td></tr>
+        <tr><td>Goods displayed on racks or tables in front of a shop</td><td><code>1203</code> Road side furniture</td><td>Building, Board</td></tr>
+        <tr><td>A board painted directly on a wall</td><td><code>03xx</code> Building (it is the wall)</td><td>Board</td></tr>
+        <tr><td>A board on its own frame or bracket, even if touching the wall</td><td><code>09xx</code> Board</td><td>Building</td></tr>
+        <tr><td>A bundle of wires, a transformer or a junction box on a pole</td><td><code>0700</code> Wire-Structure Connector</td><td>Wire, Pole</td></tr>
+        <tr><td>Steps leading up to a shop</td><td><code>0103</code> Steeply sloping ground</td><td>Building</td></tr>
+        <tr><td>A low boundary wall with a gate, not part of a house</td><td><code>1001</code> Masonry wall and <code>1003</code> Gate</td><td>Building</td></tr>
+        <tr><td>A person sitting on a parked motorbike</td><td><code>0813</code> Mobike rider (person and bike together)</td><td>Human + Vehicle</td></tr>
+        <tr><td>A streak of points along the road with no solid shape</td><td><code>0003</code> Moving vehicle</td><td>Vehicle</td></tr>
+        <tr><td>Points floating in the air, or below the road surface</td><td><code>0002</code> High noise · <code>0001</code> Noise points</td><td>Unlabeled</td></tr>
+      </tbody>
+    </table>
+
+    <!-- ============================================================ 3 -->
+    <h2 id="overview"><span class="num">3</span>The workflow at a glance</h2>
+    <div class="flow">
+      <div><b>Step 1 to 2</b>Open the segment, keep the global shift, set up RGB, intensity and EDL views.</div>
+      <div><b>Step 3 to 4</b>Carve the segment into one cloud per class with the segment tool, largest classes first.</div>
+      <div><b>Step 5</b>Split each class cloud into instances: connected components first, polygons for the rest.</div>
+      <div><b>Step 6</b>Name every instance <code>NXXZZYYYY</code> and save it as a CSV in its class folder.</div>
+      <div><b>Step 7</b>Self-check, then the lab compares your labels with the second annotator's.</div>
+    </div>
+    <p>
+      The order matters. Carving classes first and instances second is much faster than cutting objects one by
+      one out of the full segment, because every cut you make on a class cloud only has to separate objects
+      of the same kind.
+    </p>
+
+    <!-- ============================================================ 4 -->
+    <h2 id="open"><span class="num">4</span>Step 1 · Open a segment</h2>
+    <ol class="steps">
+      <li>Start CloudCompare and drag the segment file into the window, or use <span class="menu">File<i>›</i>Open</span> (<kbd>Ctrl</kbd>+<kbd>O</kbd>).</li>
+      <li>In the file dialog that follows, keep the default field mapping and click <b>Apply all</b>. For a LAS file make sure <b>Intensity</b> and <b>RGB</b> are ticked. For a CSV, check that the columns are mapped to X, Y, Z, R, G, B and that intensity is read as a scalar field.</li>
+      <li>Because the coordinates are UTM (values around 7&nbsp;45&nbsp;000 east and 25&nbsp;73&nbsp;000 north), CloudCompare offers to shift the cloud. Tick <b>Preserve global shift on save</b> and click <b>Yes to All</b>. The cloud is shown in local coordinates but every file you save gets the original coordinates back.</li>
+      <li>Immediately save a project: select the cloud, <span class="menu">File<i>›</i>Save</span> (<kbd>Ctrl</kbd>+<kbd>S</kbd>), choose <b>CloudCompare entities (*.bin)</b>, name it <code>Segment_NN_project.bin</code>. There is no auto-save. Save the project every time you finish a class.</li>
+    </ol>
+    <figure class="shot">
+      <img src="img/01_open_dialog.png" alt="CloudCompare open dialog with the field mapping and the Apply all button" loading="lazy" />
+      <figcaption><b>Figure 1.</b> The open dialog. Keep the mapping, make sure intensity and RGB are included, click <b>Apply all</b>.</figcaption>
+    </figure>
+    <figure class="shot">
+      <img src="img/02_global_shift.png" alt="Global shift dialog with Preserve global shift on save ticked" loading="lazy" />
+      <figcaption><b>Figure 2.</b> The global shift dialog. Tick <b>Preserve global shift on save</b>, then <b>Yes to All</b>. Without this, exported files lose their georeferencing.</figcaption>
+    </figure>
+    <div class="callout warn">
+      <b>Never edit the raw file</b>
+      Everything you cut is kept in CloudCompare as new clouds. The raw LAS stays as received, so a mistake can always be recovered by reloading it.
+    </div>
+
+    <!-- ============================================================ 5 -->
+    <h2 id="view"><span class="num">5</span>Step 2 · Set up the view</h2>
+    <p>
+      You will switch between three ways of looking at the same points. Select the cloud in the <b>DB Tree</b>;
+      the <b>Properties</b> panel below it controls the display.
+    </p>
+    <ul>
+      <li><b>RGB</b> (Properties › Colors › RGB): the photo colours. Only about 40% of points have them; the rest are black. Best for reading boards, shop fronts and vehicle types.</li>
+      <li><b>Intensity</b> (Properties › Colors › Scalar field, active field <i>Intensity</i>): the laser return strength. Every point has it. Road markings, metal, glass and foliage stand out. This is the view you will use most.</li>
+      <li><b>EDL shading</b> (<span class="menu">Display<i>›</i>Shaders &amp; Filters<i>›</i>EDL Shader</span>, or the EDL icon on the right): adds depth shading so edges, steps and thin objects such as wires stand out from any viewpoint. Switch it off again with <span class="menu">Display<i>›</i>Shaders &amp; Filters<i>›</i>Remove Filter</span> when it makes a dense cloud too dark.</li>
+    </ul>
+    <p>Navigation: left-drag rotates, right-drag pans, the wheel zooms. The icons on the left of the window give the top, front, back, left and right views; the magnifier icon (<kbd>Z</kbd>) zooms onto the selected entity. <kbd>F3</kbd> toggles perspective. Set <b>Point size</b> to 2 or 3 in the Properties panel so that sparse objects are easier to read, and for an intensity view choose the <b>Grey</b> colour scale under <i>Color Scale</i> and drag the upper end of the <i>Display ranges</i> down until the road and walls show contrast.</p>
+    <figure class="shot">
+      <img src="img/03_main_window.png" alt="CloudCompare main window with a Bhopal segment loaded: DB tree, properties, 3D view and console" loading="lazy" />
+      <figcaption><b>Figure 3.</b> A segment loaded. DB Tree (top left), Properties of the selected cloud (bottom left), the 3D view, and the console at the bottom, which reports every operation and every error.</figcaption>
+    </figure>
+    <div class="two">
+      <figure class="shot">
+        <img src="img/04a_view_rgb.png" alt="The same street in RGB colours" loading="lazy" />
+        <figcaption><b>Figure 4a.</b> RGB, same 16 m patch seen from above. Shop fronts and boards are readable; uncoloured points are black.</figcaption>
+      </figure>
+      <figure class="shot">
+        <img src="img/04b_view_sf.png" alt="The same street coloured by LiDAR intensity on a grey scale" loading="lazy" />
+        <figcaption><b>Figure 4b.</b> Intensity as a grey scalar field, point size 3. Every point is visible and the geometry reads clearly.</figcaption>
+      </figure>
+    </div>
+    <h3>Using the 360° photos</h3>
+    <p>
+      The crops are named by their position along the path. Open the crop nearest to the object you are unsure
+      about and compare: a smeared blob next to a shop is a hanging banner or a mannequin, a low block on the
+      footpath is a hand cart or a bench. Decide from the photo, then label the points. When a photo and the
+      geometry disagree (something moved between the photo and the scan), the geometry wins.
+    </p>
+    <figure class="shot">
+      <img src="img/05_panorama_reference.jpg" alt="A 90-degree crop of a 360-degree photo: a hand cart, two-wheelers, shop boards, a shop shade and wires" loading="lazy" style="max-height: 560px;" />
+      <figcaption><b>Figure 5.</b> A photo crop from Path 6: hand cart (<code>0804</code>), two-wheelers (<code>0802</code>), boards (<code>09xx</code>), a shop shade (<code>1202</code>) and wires (<code>0500</code>) in one view. Faces and plates are blurred in the released imagery.</figcaption>
+    </figure>
+
+    <!-- ============================================================ 6 -->
+    <h2 id="segment"><span class="num">6</span>Step 3 · The segment tool</h2>
+    <p>
+      One tool does nearly all the work: <span class="menu">Edit<i>›</i>Segment</span> (<kbd>T</kbd>, or the
+      scissors icon in the top toolbar). It cuts the selected cloud in two with a polygon you draw on the screen.
+    </p>
+    <ol class="steps">
+      <li>Select the cloud to cut in the DB Tree and press <kbd>T</kbd>. A small toolbar appears at the top right of the 3D view and the view stops rotating.</li>
+      <li>Choose <b>polygonal</b> selection (default) or <b>rectangular</b> from the dropdown.</li>
+      <li>Left-click to place the polygon's corners around the object. Right-click closes the polygon.</li>
+      <li>Click <b>Segment In</b> (<kbd>I</kbd>) to keep only what is inside the polygon, or <b>Segment Out</b> (<kbd>O</kbd>) to remove what is inside. The hidden points are not deleted, only hidden.</li>
+      <li>To look at the result from another side, press <kbd>Space</kbd> (<b>Pause</b>): the view rotates again, the tool stays open. Press <kbd>Space</kbd> to continue cutting. Refine from two or three viewpoints until only the object remains.</li>
+      <li>Press <kbd>Enter</kbd> (the green tick) to confirm. The cloud is replaced by two clouds in the DB Tree: <code>name.segmented</code> (what you kept) and <code>name.remaining</code> (everything else). <kbd>Esc</kbd> cancels without changing anything.</li>
+    </ol>
+    <figure class="shot">
+      <img src="img/06_segment_toolbar.png" alt="The segmentation toolbar: pause, polygon or rectangle, segment in, segment out, confirm, confirm and delete, cancel" loading="lazy" />
+      <figcaption><b>Figure 6.</b> The segment toolbar. Pause (Space), selection shape, <b>Segment In</b> (I), <b>Segment Out</b> (O), confirm (Enter), confirm and delete hidden points, cancel (Esc).</figcaption>
+    </figure>
+    <figure class="shot">
+      <img src="img/07_polygon.png" alt="A polygon drawn around a parked vehicle in the 3D view" loading="lazy" />
+      <figcaption><b>Figure 7.</b> A polygon (green) traced around a hand cart parked at the kerb, top view. Right-click closes it; <b>Segment In</b> keeps the cart.</figcaption>
+    </figure>
+    <figure class="shot">
+      <img src="img/08_segment_result.png" alt="DB tree after confirming: the .segmented and .remaining clouds" loading="lazy" />
+      <figcaption><b>Figure 8.</b> After <kbd>Enter</kbd>: <code>.segmented</code> (the cart, 7,961 points, selected) and <code>.remaining</code>. Untick <code>.remaining</code> to see the cut alone.</figcaption>
+    </figure>
+    <div class="callout note">
+      <b>Habits that save hours</b>
+      Cut with the object seen from the side where it is best separated from its neighbours (a parked bike from above, a wire from the side, a shop shade from the front). Use the top view to split the street into road and footpath first. Zoom in before closing a polygon: a sloppy corner costs a second pass. Never use <b>confirm and delete hidden points</b>; the hidden points are the rest of your segment.
+    </div>
+
+    <!-- ============================================================ 7 -->
+    <h2 id="classes"><span class="num">7</span>Step 4 · Carve the segment into classes</h2>
+    <p>
+      The goal of this step is one cloud per class, named by its code, with nothing left over. Work from the
+      largest, simplest classes to the smallest. After every cut, rename <code>.segmented</code> to the class and
+      keep working on <code>.remaining</code>.
+    </p>
+    <ol class="steps">
+      <li><b>Road</b> (<code>0400</code>). Top view, intensity colours. Trace the carriageway between the shop fronts. Include speed breakers and covered drains; exclude parked vehicles (they are cut later from the remaining cloud).</li>
+      <li><b>Ground</b> (<code>01xx</code>). What is left at street level: footpaths, shop thresholds, steps, bare earth. Cut steps as <code>0103</code> if they are a clear block of their own.</li>
+      <li><b>Building</b> (<code>03xx</code>). Side views. Cut facade by facade so that a later instance split is already done; one cloud per building is ideal. Shop shades, boards on brackets and goods on racks do not belong here.</li>
+      <li><b>Vegetation</b> (<code>02xx</code>). Trees and shrubs, with their trunks. Decide the height subclass from the side view.</li>
+      <li><b>Wire</b> (<code>0500</code>), <b>Pole and Tower</b> (<code>06xx</code>), <b>Wire-Structure Connector</b> (<code>0700</code>). Side views with EDL. Cut the pole from the ground up to its top; the wires leaving it are Wire; the transformer, cross-arm and cable bundle on it are the Connector.</li>
+      <li><b>Vehicle</b> (<code>08xx</code>), <b>Human and Animal</b> (<code>11xx</code>), <b>Board</b> (<code>09xx</code>), <b>Fencing</b> (<code>10xx</code>), <b>Road Side Object</b> (<code>12xx</code>). The small classes. Use the photos.</li>
+      <li><b>Moving</b> (<code>0003</code> to <code>0008</code>) and <b>noise</b> (<code>0001</code>, <code>0002</code>). Streaks, ghosts, floating points.</li>
+      <li>Whatever is still in the last <code>.remaining</code> and cannot be identified becomes <code>0000</code> Unlabeled. The remaining cloud must then be empty.</li>
+    </ol>
+    <h3>Renaming a cloud</h3>
+    <p>
+      Select the cloud in the DB Tree and press <kbd>F2</kbd>, or edit the <b>Name</b> field at the top of the
+      Properties panel. Name class clouds <code>XXZZ_Class</code>, for example <code>0400_Road</code> or
+      <code>0302_Commercial</code>. A right-click on the parent group offers <b>Sort children by name</b>, so the
+      codes keep the list in taxonomy order, and <b>Add empty group</b>, which gives you one folder per major
+      class to drag the clouds into.
+    </p>
+    <div class="two">
+      <figure class="shot">
+        <img src="img/09_rename.png" alt="Renaming a cloud in the DB tree" loading="lazy" />
+        <figcaption><b>Figure 9a.</b> The cut renamed with <kbd>F2</kbd>, here already with its instance ID. Class clouds take the <code>XXZZ_Class</code> form so that the list sorts in taxonomy order.</figcaption>
+      </figure>
+      <figure class="shot">
+        <img src="img/09b_class_tree.png" alt="DB tree with one cloud per major class, named by code" loading="lazy" />
+        <figcaption><b>Figure 9b.</b> The DB Tree at the end of Step 4: one cloud per class, named by code, nothing left in the remaining cloud.</figcaption>
+      </figure>
+    </div>
+    <div class="callout rule">
+      <b>Rule 4 · No mixed clouds</b>
+      A class cloud must contain points of that class only. Checking this is cheap now (show the class cloud alone, rotate, look for intruders) and expensive later, when a stray branch inside a Building cloud becomes a wrongly labelled instance.
+    </div>
+
+    <!-- ============================================================ 8 -->
+    <h2 id="instances"><span class="num">8</span>Step 5 · Split classes into instances</h2>
+    <p>
+      Every object in a thing class gets its own cloud. Thing classes are Building, Pole and Tower,
+      Wire-Structure Connector, Vehicle, Board, Fencing, Human and Animal and Road Side Object. Ground, Road,
+      Vegetation and Wire are stuff classes in the benchmark, but they are still delivered as one cloud per
+      connected piece (one road surface, one patch of ground, one tree, one wire run), which makes the quality
+      check and the merge simpler.
+    </p>
+    <h3>Automatic first: connected components</h3>
+    <ol class="steps">
+      <li>Select a class cloud and open <span class="menu">Tools<i>›</i>Segmentation<i>›</i>Label Connected Components</span>.</li>
+      <li>Raise the <b>octree level</b> until the <i>grid step</i> shown beside it is about 10 to 15 cm, the gap that separates two parked vehicles or two people (the level number itself depends on the size of the cloud). Set <b>min. points per component</b> to 100 so that noise does not become an instance. Tick <b>random colors</b> and click OK.</li>
+      <li>CloudCompare creates one cloud per component in a new group named after the class cloud, <code>CC#0</code>, <code>CC#1</code>, and so on, and hides the original. The console reports how many components were made.</li>
+      <li>Walk through the components. One object split into several components: select them all (<kbd>Ctrl</kbd>-click) and <span class="menu">Edit<i>›</i>Merge</span>. Several objects in one component: select it, press <kbd>T</kbd> and cut them apart with polygons.</li>
+    </ol>
+    <figure class="shot">
+      <img src="img/10_connected_components.png" alt="Label Connected Components dialog with octree level and minimum points per component" loading="lazy" />
+      <figcaption><b>Figure 10.</b> Label Connected Components: the grid step is shown next to the octree level; 100 points minimum; random colours on.</figcaption>
+    </figure>
+    <figure class="shot">
+      <img src="img/11_components_result.png" alt="A class cloud split into components, each in its own colour" loading="lazy" />
+      <figcaption><b>Figure 11.</b> The Vehicle cloud of the sample segment after connected components: 59 components, one colour each, listed as <code>CC#n</code>. Rows of two-wheelers parked wheel to wheel land in one component (the large blocks) and are cut apart with the segment tool; a single vehicle split in two is merged back.</figcaption>
+    </figure>
+    <div class="callout note">
+      <b>What counts as one instance</b>
+      One physical object with everything attached to it: a bike with its rider and bags, a cart with its goods, a building with its balconies and the boards painted on it, a pole with its lamp. Two objects that touch are two instances. A wall shared by two houses is split where the houses meet; if that cannot be told, it stays one instance.
+    </div>
+
+    <!-- ============================================================ 9 -->
+    <h2 id="export"><span class="num">9</span>Step 6 · Name and export</h2>
+    <h3>The instance ID</h3>
+    <p>Every instance is named with a nine-digit ID that encodes where it is in the dataset:</p>
+    <pre><code>N XX ZZ YYYY
+│ │  │  └── running number of this object within the class, 0001, 0002, ...
+│ │  └───── subclass (00 = general)
+│ └──────── major class 01..12 (00 = unlabeled, noise, moving)
+└────────── survey path 1..8
+
+608020017  = path 6, Vehicle (08), Mobike (02), the 17th mobike
+603000003  = path 6, Building (03), general (00), the 3rd building
+600040001  = path 6, Moving humans (0004), the 1st</code></pre>
+    <p>
+      Keep <code>YYYY</code> unique within your segment for each class code. The lab renumbers across the
+      segments of a path when it merges them, so you do not need to know what other annotators used.
+    </p>
+    <h3>Export each instance as CSV</h3>
+    <ol class="steps">
+      <li>Rename the instance cloud to its ID (<kbd>F2</kbd>). Instance clouds live under their class cloud in the DB Tree; the class cloud keeps its <code>XXZZ_Class</code> name.</li>
+      <li>Select the instance and press <kbd>Ctrl</kbd>+<kbd>S</kbd>. Choose the file type <b>ASCII cloud (*.txt *.asc *.csv ...)</b>, go to the class folder on disk (<code>Vehicle/Mobike (Two-Wheeler)/</code>), type the ID with the extension, <code>608020017.csv</code>, and click Save.</li>
+      <li>In the <b>Save ASCII file</b> dialog set <b>separator</b> to <b>comma</b>, tick <b>columns title</b>, keep the order <i>point, color, SF(s), normal</i>, and click OK. The file then has one header line (<code>//X,Y,Z,R,G,B,intensity</code>) and one point per line in the original UTM coordinates. The lab's merge script turns these into the release format (<code>x,y,z,intensity,gps_time,label,global_id</code>); you do not need to edit them.</li>
+      <li>Several instances of one class can be exported in one go: select them all and save; CloudCompare asks for a file name per cloud, pre-filled with the cloud name.</li>
+    </ol>
+    <div class="two">
+      <figure class="shot">
+        <img src="img/12a_save_dialog.png" alt="Save file dialog with the file type list open on ASCII cloud" loading="lazy" />
+        <figcaption><b>Figure 12a.</b> <kbd>Ctrl</kbd>+<kbd>S</kbd>: pick <b>ASCII cloud</b> as the file type and type the ID with <code>.csv</code> as the name.</figcaption>
+      </figure>
+      <figure class="shot">
+        <img src="img/12_save_ascii.png" alt="Save ASCII file dialog with comma separator and columns title ticked" loading="lazy" />
+        <figcaption><b>Figure 12b.</b> Save ASCII file: separator <b>comma</b>, <b>columns title</b> ticked, order point, color, SF(s), normal.</figcaption>
+      </figure>
+    </div>
+    <div class="callout warn">
+      <b>Check the first file you export</b>
+      Open it in a text editor. The first coordinate must look like <code>745123.4567,2573045.1234,500.12</code>, not <code>123.4567,45.1234,...</code>. If the shift was lost, reload the raw file and answer the global shift dialog again with <b>Preserve global shift on save</b> ticked.
+    </div>
+
+    <!-- ============================================================ 10 -->
+    <h2 id="qc"><span class="num">10</span>Step 7 · Quality checks</h2>
+    <h3>Before you hand in a segment</h3>
+    <ul>
+      <li>The last <code>.remaining</code> cloud is empty: every point is in exactly one instance file.</li>
+      <li>Show each class cloud alone and rotate it once: no points of another class inside.</li>
+      <li>Every file name is nine digits with the right path number, class and subclass, and every file sits in the folder of its class.</li>
+      <li>Each instance file has the header line, comma separators and UTM coordinates.</li>
+      <li>The project <code>.bin</code> is saved and sits next to the raw file.</li>
+    </ul>
+    <h3>What the lab does with it</h3>
+    <p>
+      Every segment is labelled by two annotators independently. The lab merges each annotator's files back into
+      a labelled copy of the segment and computes the point-level disagreement between the two. Disagreeing
+      points are reviewed together with both annotators and corrected until the disagreement rate of the whole
+      path is below 0.5%. A path that does not get there is relabelled by a third annotator. A reviewer then
+      goes through every labelled path once more and settles the remaining cases by discussion. The classes
+      where annotators disagree most are Ground against Road where unpaved ground grades into the carriageway,
+      and Fencing against Building on boundary walls; take extra care at those boundaries.
+    </p>
+
+    <!-- ============================================================ 11 -->
+    <h2 id="faq"><span class="num">11</span>Frequently asked questions</h2>
+    <dl class="faq">
+      <dt>I can recognise the class but the object is incomplete, for example a crown without a trunk. Unlabeled?</dt>
+      <dd>No. If you are confident about the class, label it. Unlabeled is only for points you cannot identify at all.</dd>
+      <dt>I found an object that is not in the list.</dt>
+      <dd>Label it <code>0000</code> Unlabeled and note it in your hand-over message with the instance ID, so the lab can decide whether the list needs a class.</dd>
+      <dt>How do I decide low, medium and high vegetation?</dt>
+      <dd>By height above the ground in the side view: shrubs and potted plants below 1 m are low, a banana-sized tree between 1 and 3 m is medium, anything taller (neem, mango, peepal) is high.</dd>
+      <dt>Shop shade or building?</dt>
+      <dd>If it is a separate sheet, frame or canopy fixed to the facade, it is a Shop shade. A concrete projection cast with the building (a chhajja or balcony) is Building.</dd>
+      <dt>Male, female, child, or just Human?</dt>
+      <dd>Use the photo. If the photo does not settle it, use <code>1100</code> Human and Animal. These subclasses record what the annotator could see, nothing more.</dd>
+      <dt>My cloud opens in the wrong place, or exported files do not line up with the raw data.</dt>
+      <dd>The global shift was not preserved. Reload the raw file and answer the global shift dialog with <b>Preserve global shift on save</b> ticked.</dd>
+      <dt>CloudCompare becomes slow when I have many clouds visible.</dt>
+      <dd>Untick everything you are not working on in the DB Tree. Only the visible clouds are drawn. Save the project first.</dd>
+      <dt>Can I undo a cut?</dt>
+      <dd>There is no undo. Merge <code>.segmented</code> and <code>.remaining</code> back (<span class="menu">Edit<i>›</i>Merge</span>) and cut again. The raw file is always there to reload.</dd>
+    </dl>
+
+    <!-- ============================================================ 12 -->
+    <h2 id="appendix"><span class="num">12</span>Appendix</h2>
+    <h3 id="codes">A · Class codes (all 71 codes of the V13 class table)</h3>
+    <p>The complete table used during annotation, including the general code of every major class. The last column is the running index of the V13 table; the released NPZ and HDF5 files carry their own contiguous 0 to 61 class index, listed in the dataset documentation, and the full <code>NXXZZYYYY</code> ID of every point.</p>
+    <!-- Rows generated from Bhopal_class_mapping_V13.csv (same folder); regenerate rather than hand-edit. -->
+    <table id="class-table">
+      <thead><tr><th class="code">XX</th><th class="code">ZZ</th><th>Class</th><th class="code">V13 index</th></tr></thead>
+      <tbody>
+        <tr class="major moving"><td class="code">00</td><td class="code">00</td><td>Unlabeled</td><td class="code">0</td></tr>
+        <tr class="moving"><td class="code">00</td><td class="code">01</td><td>Noise Points</td><td class="code">1</td></tr>
+        <tr class="moving"><td class="code">00</td><td class="code">02</td><td>High Noise Points</td><td class="code">2</td></tr>
+        <tr class="moving"><td class="code">00</td><td class="code">03</td><td>Moving Vehicle</td><td class="code">3</td></tr>
+        <tr class="moving"><td class="code">00</td><td class="code">04</td><td>Moving Humans</td><td class="code">4</td></tr>
+        <tr class="moving"><td class="code">00</td><td class="code">05</td><td>Moving Female</td><td class="code">5</td></tr>
+        <tr class="moving"><td class="code">00</td><td class="code">06</td><td>Moving Male</td><td class="code">6</td></tr>
+        <tr class="moving"><td class="code">00</td><td class="code">07</td><td>Moving Animal</td><td class="code">7</td></tr>
+        <tr class="moving"><td class="code">00</td><td class="code">08</td><td>Mobike Rider Moving</td><td class="code">8</td></tr>
+        <tr class="major"><td class="code">01</td><td class="code">00</td><td>Ground</td><td class="code">9</td></tr>
+        <tr><td class="code">01</td><td class="code">01</td><td>Flat Ground</td><td class="code">10</td></tr>
+        <tr><td class="code">01</td><td class="code">02</td><td>Gently Sloping Ground</td><td class="code">11</td></tr>
+        <tr><td class="code">01</td><td class="code">03</td><td>Steeply Sloping Ground</td><td class="code">12</td></tr>
+        <tr class="major"><td class="code">02</td><td class="code">00</td><td>Vegetation</td><td class="code">13</td></tr>
+        <tr><td class="code">02</td><td class="code">01</td><td>Low Vegetation</td><td class="code">14</td></tr>
+        <tr><td class="code">02</td><td class="code">02</td><td>Medium Vegetation</td><td class="code">15</td></tr>
+        <tr><td class="code">02</td><td class="code">03</td><td>High Vegetation</td><td class="code">16</td></tr>
+        <tr class="major"><td class="code">03</td><td class="code">00</td><td>Building</td><td class="code">17</td></tr>
+        <tr><td class="code">03</td><td class="code">01</td><td>Residential</td><td class="code">18</td></tr>
+        <tr><td class="code">03</td><td class="code">02</td><td>Commercial</td><td class="code">19</td></tr>
+        <tr><td class="code">03</td><td class="code">03</td><td>Industrial</td><td class="code">20</td></tr>
+        <tr><td class="code">03</td><td class="code">04</td><td>Special</td><td class="code">21</td></tr>
+        <tr class="major"><td class="code">04</td><td class="code">00</td><td>Road</td><td class="code">22</td></tr>
+        <tr class="major"><td class="code">05</td><td class="code">00</td><td>Wire</td><td class="code">23</td></tr>
+        <tr class="major"><td class="code">06</td><td class="code">00</td><td>Pole and Tower</td><td class="code">24</td></tr>
+        <tr><td class="code">06</td><td class="code">01</td><td>Electric Pole</td><td class="code">25</td></tr>
+        <tr><td class="code">06</td><td class="code">02</td><td>Mobile Tower</td><td class="code">26</td></tr>
+        <tr><td class="code">06</td><td class="code">03</td><td>Street Light</td><td class="code">27</td></tr>
+        <tr class="major"><td class="code">07</td><td class="code">00</td><td>Wire-Structure Connector</td><td class="code">28</td></tr>
+        <tr class="major"><td class="code">08</td><td class="code">00</td><td>Vehicle</td><td class="code">29</td></tr>
+        <tr><td class="code">08</td><td class="code">01</td><td>Car</td><td class="code">30</td></tr>
+        <tr><td class="code">08</td><td class="code">02</td><td>Mobike (Two-Wheeler)</td><td class="code">31</td></tr>
+        <tr><td class="code">08</td><td class="code">03</td><td>Cycle</td><td class="code">32</td></tr>
+        <tr><td class="code">08</td><td class="code">04</td><td>Hand-Cart</td><td class="code">33</td></tr>
+        <tr><td class="code">08</td><td class="code">05</td><td>Tuktuk (3 Wheeler)</td><td class="code">34</td></tr>
+        <tr><td class="code">08</td><td class="code">06</td><td>Truck</td><td class="code">35</td></tr>
+        <tr><td class="code">08</td><td class="code">07</td><td>Rickshaw</td><td class="code">36</td></tr>
+        <tr><td class="code">08</td><td class="code">08</td><td>E-Rickshaw</td><td class="code">37</td></tr>
+        <tr><td class="code">08</td><td class="code">09</td><td>Dynamic Car</td><td class="code">38</td></tr>
+        <tr><td class="code">08</td><td class="code">10</td><td>Dynamic Tuktuk (3 Wheeler)</td><td class="code">39</td></tr>
+        <tr><td class="code">08</td><td class="code">11</td><td>Dynamic Truck</td><td class="code">40</td></tr>
+        <tr><td class="code">08</td><td class="code">12</td><td>Rider on Vehicle</td><td class="code">41</td></tr>
+        <tr><td class="code">08</td><td class="code">13</td><td>Mobike Rider (2 Wheeler)</td><td class="code">42</td></tr>
+        <tr><td class="code">08</td><td class="code">14</td><td>Cycle Rider</td><td class="code">43</td></tr>
+        <tr class="major"><td class="code">09</td><td class="code">00</td><td>Board</td><td class="code">44</td></tr>
+        <tr><td class="code">09</td><td class="code">01</td><td>Sign Board</td><td class="code">45</td></tr>
+        <tr><td class="code">09</td><td class="code">02</td><td>Advt Board</td><td class="code">46</td></tr>
+        <tr class="major"><td class="code">10</td><td class="code">00</td><td>Fencing</td><td class="code">47</td></tr>
+        <tr><td class="code">10</td><td class="code">01</td><td>Masonry Wall</td><td class="code">48</td></tr>
+        <tr><td class="code">10</td><td class="code">02</td><td>Wired Boundary Fencing</td><td class="code">49</td></tr>
+        <tr><td class="code">10</td><td class="code">03</td><td>Gate of Boundary Wall</td><td class="code">50</td></tr>
+        <tr><td class="code">10</td><td class="code">04</td><td>Road Fencing</td><td class="code">51</td></tr>
+        <tr class="major"><td class="code">11</td><td class="code">00</td><td>Human and Animal</td><td class="code">52</td></tr>
+        <tr><td class="code">11</td><td class="code">01</td><td>Male</td><td class="code">53</td></tr>
+        <tr><td class="code">11</td><td class="code">02</td><td>Female</td><td class="code">54</td></tr>
+        <tr><td class="code">11</td><td class="code">03</td><td>Child</td><td class="code">55</td></tr>
+        <tr><td class="code">11</td><td class="code">04</td><td>Animal</td><td class="code">56</td></tr>
+        <tr><td class="code">11</td><td class="code">05</td><td>Dog</td><td class="code">57</td></tr>
+        <tr><td class="code">11</td><td class="code">06</td><td>Cow</td><td class="code">58</td></tr>
+        <tr class="major"><td class="code">12</td><td class="code">00</td><td>Road Side Object</td><td class="code">59</td></tr>
+        <tr><td class="code">12</td><td class="code">01</td><td>Barricade</td><td class="code">60</td></tr>
+        <tr><td class="code">12</td><td class="code">02</td><td>Shop Shade</td><td class="code">61</td></tr>
+        <tr><td class="code">12</td><td class="code">03</td><td>Road Side Furniture</td><td class="code">62</td></tr>
+        <tr><td class="code">12</td><td class="code">04</td><td>Statue</td><td class="code">63</td></tr>
+        <tr><td class="code">12</td><td class="code">05</td><td>Handpump</td><td class="code">64</td></tr>
+        <tr><td class="code">12</td><td class="code">06</td><td>Road Side Public Structure</td><td class="code">65</td></tr>
+        <tr><td class="code">12</td><td class="code">07</td><td>Mannequin</td><td class="code">66</td></tr>
+        <tr><td class="code">12</td><td class="code">08</td><td>Dustbin</td><td class="code">67</td></tr>
+        <tr><td class="code">12</td><td class="code">09</td><td>Bus Stand</td><td class="code">68</td></tr>
+        <tr><td class="code">12</td><td class="code">10</td><td>Overhead Structure</td><td class="code">69</td></tr>
+        <tr><td class="code">12</td><td class="code">11</td><td>Road Median</td><td class="code">70</td></tr>
+      </tbody>
+    </table>
+    <h3 id="shortcuts">B · CloudCompare shortcuts used here</h3>
+    <table>
+      <thead><tr><th>Action</th><th>Where</th><th>Key</th></tr></thead>
+      <tbody>
+        <tr><td>Open a file</td><td>File › Open</td><td><kbd>Ctrl</kbd>+<kbd>O</kbd></td></tr>
+        <tr><td>Save the selected entities</td><td>File › Save</td><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td></tr>
+        <tr><td>Segment tool</td><td>Edit › Segment</td><td><kbd>T</kbd></td></tr>
+        <tr><td>In the segment tool: pause / resume drawing</td><td>toolbar</td><td><kbd>Space</kbd></td></tr>
+        <tr><td>In the segment tool: keep inside / remove inside</td><td>toolbar</td><td><kbd>I</kbd> / <kbd>O</kbd></td></tr>
+        <tr><td>In the segment tool: confirm / cancel</td><td>toolbar</td><td><kbd>Enter</kbd> / <kbd>Esc</kbd></td></tr>
+        <tr><td>Rename the selected entity</td><td>DB Tree</td><td><kbd>F2</kbd></td></tr>
+        <tr><td>Delete the selected entity</td><td>Edit › Delete</td><td><kbd>Del</kbd></td></tr>
+        <tr><td>Zoom onto the selected entity</td><td>left toolbar, magnifier</td><td><kbd>Z</kbd></td></tr>
+        <tr><td>Merge the selected clouds</td><td>Edit › Merge</td><td></td></tr>
+        <tr><td>Connected components</td><td>Tools › Segmentation › Label Connected Components</td><td></td></tr>
+        <tr><td>EDL shading on / off</td><td>Display › Shaders &amp; Filters › EDL Shader / Remove Filter</td><td></td></tr>
+        <tr><td>Toggle perspective</td><td>Display</td><td><kbd>F3</kbd></td></tr>
+        <tr><td>Full-screen 3D view</td><td>Display › Full screen (3D view)</td><td><kbd>F11</kbd></td></tr>
+      </tbody>
+    </table>
+    <h3 id="layout">C · Deliverable folder layout</h3>
+    <p>One folder per major class, one sub-folder per subclass, one CSV per instance named by its ID, plus the untouched raw file and the project file. The folder names are the class names of the table above, exactly as written there.</p>
+    <h3>D · About this guide</h3>
+    <p>
+      This guide describes the procedure of the BhopalMLS annotation, as summarised in Section 3.3 of the paper.
+      The original work units were labelled with CloudCompare 2.11 and 2.12 and the lab's merge and check
+      scripts; the class table is the V13 class mapping that the released data use. The screenshots show a real
+      60 m segment of Path 6 opened in CloudCompare 2.11.3.
+    </p>
+  </main>
+  <footer>
+    BhopalMLS · <a href="../index.html">Project page</a> · GeoAI4Cities Lab, IISER Bhopal
+  </footer>
+  <script>
+    (function () {
+      var root = document.documentElement, btn = document.getElementById("theme-toggle");
+      function current() {
+        var t = root.getAttribute("data-theme");
+        if (t) return t;
+        try { return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"; } catch (e) { return "light"; }
+      }
+      function apply(t) { root.setAttribute("data-theme", t); btn.textContent = t === "dark" ? "Light mode" : "Dark mode"; }
+      try { var saved = localStorage.getItem("bhopalmls-guide-theme"); if (saved) apply(saved); else btn.textContent = current() === "dark" ? "Light mode" : "Dark mode"; } catch (e) {}
+      btn.addEventListener("click", function () {
+        var next = current() === "dark" ? "light" : "dark"; apply(next);
+        try { localStorage.setItem("bhopalmls-guide-theme", next); } catch (e) {}
+      });
+    })();
+  </script>
+</body>
+</html>

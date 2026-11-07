@@ -1,0 +1,72 @@
+XX,ZZ,class_name,class_code
+0,0,Unlabeled,0
+0,1,Noise Points,1
+0,2,High Noise Points,2
+0,3,Moving Vehicle,3
+0,4,Moving Humans,4
+0,5,Moving Female,5
+0,6,Moving Male,6
+0,7,Moving Animal,7
+0,8,Mobike Rider Moving,8
+1,0,Ground,9
+1,1,Flat Ground,10
+1,2,Gently Sloping Ground,11
+1,3,Steeply Sloping Ground,12
+2,0,Vegetation,13
+2,1,Low Vegetation,14
+2,2,Medium Vegetation,15
+2,3,High Vegetation,16
+3,0,Building,17
+3,1,Residential,18
+3,2,Commercial,19
+3,3,Industrial,20
+3,4,Special,21
+4,0,Road,22
+5,0,Wire,23
+6,0,Pole and Tower,24
+6,1,Electric Pole,25
+6,2,Mobile Tower,26
+6,3,Street Light,27
+7,0,Wire-Structure Connector,28
+8,0,Vehicle,29
+8,1,Car,30
+8,2,Mobike (Two-Wheeler),31
+8,3,Cycle,32
+8,4,Hand-Cart,33
+8,5,Tuktuk (3 Wheeler),34
+8,6,Truck,35
+8,7,Rickshaw,36
+8,8,E-Rickshaw,37
+8,9,Dynamic Car,38
+8,10,Dynamic Tuktuk (3 Wheeler),39
+8,11,Dynamic Truck,40
+8,12,Rider on Vehicle,41
+8,13,Mobike Rider (2 Wheeler),42
+8,14,Cycle Rider,43
+9,0,Board,44
+9,1,Sign Board,45
+9,2,Advt Board,46
+10,0,Fencing,47
+10,1,Masonry Wall,48
+10,2,Wired Boundary Fencing,49
+10,3,Gate of Boundary Wall,50
+10,4,Road Fencing,51
+11,0,Human and Animal,52
+11,1,Male,53
+11,2,Female,54
+11,3,Child,55
+11,4,Animal,56
+11,5,Dog,57
+11,6,Cow,58
+12,0,Road Side Object,59
+12,1,Barricade,60
+12,2,Shop Shade,61
+12,3,Road Side Furniture,62
+12,4,Statue,63
+12,5,Handpump,64
+12,6,Road Side Public Structure,65
+12,7,Mannequin,66
+12,8,Dustbin,67
+12,9,Bus Stand,68
+12,10,Overhead Structure,69
+12,11,Road Median,70
